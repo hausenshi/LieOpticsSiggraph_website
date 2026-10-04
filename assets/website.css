@@ -544,3 +544,9 @@ math{font-family:"Latin Modern Math",math}
  .animation-page:not(.pipeline-page){padding-bottom:104px;gap:8px}
  .slide-mobile{gap:12px}
 }
+
+/* Mobile: a slide too long for one screen scrolls inside its own region (see fitSlides). */
+@media(max-width:760px), (max-width:900px) and (orientation:portrait){
+ html.paged .animation-page .slide-stage[data-native-scroll]{pointer-events:auto;overflow-x:hidden;touch-action:pan-y pinch-zoom;overscroll-behavior-y:contain;scrollbar-width:none}
+ html.paged .animation-page .slide-stage[data-native-scroll]::-webkit-scrollbar{display:none}
+}
