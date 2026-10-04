@@ -147,7 +147,7 @@
   }
   document.addEventListener('paper-layout',()=>requestAnimationFrame(placeSubtitles));
   window.addEventListener('resize',()=>requestAnimationFrame(placeSubtitles));
-  const MIN_SCALE=0.82;
+  const MIN_SCALE=0.82,WIDE_FIGURE_PX_PER_UNIT=0.75;
   function fitSlides() {
     for (const l of layouts) {
       if (!narrow.matches) {
@@ -156,6 +156,7 @@
         l.mobile.style.removeProperty('transform');
         l.mobile.style.removeProperty('width');
         l.mobile.style.removeProperty('margin-bottom');
+        l.panels.forEach(panel=>{panel.style.minWidth='';panel.style.alignSelf='';});
         continue;
       }
       const page=l.stage.closest('[data-page]');
@@ -165,6 +166,13 @@
         const diagramSpace=Math.max(1,available-l.media.offsetHeight-18);
         l.panels.forEach(panel=>{panel.style.maxHeight=`${diagramSpace}px`;});
       }
+      // A figure that would be tiny at phone width keeps a readable size and scrolls sideways instead.
+      const reference=l.stage.clientWidth/0.9;
+      l.panels.forEach(panel=>{
+        const wide=panel.querySelector('image') && Number(panel.getAttribute('viewBox').split(' ')[2])*WIDE_FIGURE_PX_PER_UNIT>reference*1.15;
+        panel.style.minWidth=wide?`${Number(panel.getAttribute('viewBox').split(' ')[2])*WIDE_FIGURE_PX_PER_UNIT}px`:'';
+        panel.style.alignSelf=wide?'flex-start':'';
+      });
       // Widen the layout by 1/scale before shrinking, so the scaled content still fills the page width.
       l.mobile.style.width='';
       let natural=l.mobile.offsetHeight,scale=Math.min(1,available/Math.max(1,natural));
@@ -178,12 +186,12 @@
       scale=Math.max(MIN_SCALE,scale);
       l.mobile.style.width=scale<1?`${100/scale}%`:'';
       natural=l.mobile.offsetHeight;
-      const scaled=natural*scale,scrolls=scaled>available+1;
+      const scaled=natural*scale,scrolls=scaled>available+1,sideways=l.stage.scrollWidth>l.stage.clientWidth+1;
       l.mobile.style.transform=`scale(${scale})`;
       l.mobile.style.marginBottom=`${scaled-natural}px`;
       l.stage.style.height=`${Math.min(scaled,available)}px`;
       l.stage.style.overflowY=scrolls?'auto':'';
-      l.stage.toggleAttribute('data-native-scroll',scrolls);
+      l.stage.toggleAttribute('data-native-scroll',scrolls || sideways);
     }
     document.dispatchEvent(new Event('paper-layout'));
   }

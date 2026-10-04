@@ -545,8 +545,21 @@ math{font-family:"Latin Modern Math",math}
  .slide-mobile{gap:12px}
 }
 
-/* Mobile: a slide too long for one screen scrolls inside its own region (see fitSlides). */
+/* Mobile: a slide too long for one screen scrolls inside its own region (see fitSlides).
+   The region is scrolled from website.js's touch handler, so it takes no pointer events itself. */
 @media(max-width:760px), (max-width:900px) and (orientation:portrait){
- html.paged .animation-page .slide-stage[data-native-scroll]{pointer-events:auto;overflow-x:hidden;touch-action:pan-y pinch-zoom;overscroll-behavior-y:contain;scrollbar-width:none}
+ html.paged .animation-page .slide-stage[data-native-scroll]{overflow-x:hidden;scrollbar-width:none}
  html.paged .animation-page .slide-stage[data-native-scroll]::-webkit-scrollbar{display:none}
+}
+
+/* Mobile figure viewer (section-lightbox.js). The dialog never opens on wide screens. */
+dialog.figure-lightbox{width:100%;max-width:none;height:100%;max-height:none;margin:0;padding:0;border:0;border-radius:0;background:#fff;overflow:hidden}
+dialog.figure-lightbox:not([open]){display:none}
+dialog.figure-lightbox::backdrop{background:#fff}
+.lightbox-view{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+.lightbox-pan{width:100%;transform-origin:center;will-change:transform}
+.lightbox-close{position:absolute;z-index:2;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:#fffd;font-size:28px;line-height:1;color:var(--ink);cursor:pointer}
+.lightbox-hint{position:absolute;z-index:2;left:0;right:0;bottom:max(16px,env(safe-area-inset-bottom));margin:0;text-align:center;font:11px var(--mono);color:var(--muted);pointer-events:none}
+@media(max-width:760px), (max-width:900px) and (orientation:portrait){
+ .slide-mobile{transform-origin:top left}
 }

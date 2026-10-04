@@ -403,6 +403,13 @@
       gesture.axis=Math.abs(dx)>Math.abs(dy)?'x':'y';
     }
     if(gesture.axis==='x'){
+      const region=gesture.region;
+      if(!gesture.isFormulation && region?.classList.contains('slide-stage') && region.scrollWidth>region.clientWidth+1){
+        // A wide figure on a phone slide: sideways swipes pan it and never change the page.
+        region.scrollLeft+=gesture.lastX-t.clientX;gesture.lastX=t.clientX;
+        if(event.cancelable)event.preventDefault();
+        return;
+      }
       if(!gesture.isFormulation)return;
       if(event.cancelable)event.preventDefault();
       const movement=gesture.lastX-t.clientX;
@@ -446,9 +453,12 @@
     }
     if(event.cancelable) event.preventDefault();
   },{passive:false});
-  for(const type of ['touchend','touchcancel']) window.addEventListener(type,()=>{
+  for(const type of ['touchend','touchcancel']) window.addEventListener(type,event=>{
     const direction=type==='touchend'?touchGesture?.pageDirection:0;
+    // A touch that never moved is a tap; slides ignore pointer events, so others hit-test it themselves.
+    const tap=type==='touchend' && touchGesture && !touchGesture.axis && !touchGesture.owner ? {x:touchGesture.x,y:touchGesture.y,target:event.target} : null;
     touchGesture=null;
+    if(tap)document.dispatchEvent(new CustomEvent('paper-tap',{detail:tap}));
     if(direction)stepPage(direction,false);
     if(!scripted)settled();
     document.dispatchEvent(new Event('paper-media-activation'));
