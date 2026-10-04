@@ -147,15 +147,12 @@
   }
   document.addEventListener('paper-layout',()=>requestAnimationFrame(placeSubtitles));
   window.addEventListener('resize',()=>requestAnimationFrame(placeSubtitles));
-  const MIN_SCALE=0.82;
   function fitSlides() {
     for (const l of layouts) {
       if (!narrow.matches) {
-        for(const property of ['height','overflow-y'])l.stage.style.removeProperty(property);
-        l.stage.removeAttribute('data-native-scroll');
+        l.stage.style.removeProperty('height');
         l.mobile.style.removeProperty('transform');
         l.mobile.style.removeProperty('width');
-        l.mobile.style.removeProperty('margin-bottom');
         continue;
       }
       const page=l.stage.closest('[data-page]');
@@ -173,17 +170,9 @@
         natural=l.mobile.offsetHeight;
         scale=Math.min(1,available/Math.max(1,natural));
       }
-      // Never shrink below MIN_SCALE: a longer slide scrolls inside its own region (the page only
-      // changes once that region reaches its end), so the text stays readable.
-      scale=Math.max(MIN_SCALE,scale);
-      l.mobile.style.width=scale<1?`${100/scale}%`:'';
-      natural=l.mobile.offsetHeight;
-      const scaled=natural*scale,scrolls=scaled>available+1;
+      if(scale<1)l.mobile.style.width=`${100/scale}%`;
       l.mobile.style.transform=`scale(${scale})`;
-      l.mobile.style.marginBottom=`${scaled-natural}px`;
-      l.stage.style.height=`${Math.min(scaled,available)}px`;
-      l.stage.style.overflowY=scrolls?'auto':'';
-      l.stage.toggleAttribute('data-native-scroll',scrolls);
+      l.stage.style.height=`${natural*scale}px`;
     }
     document.dispatchEvent(new Event('paper-layout'));
   }
