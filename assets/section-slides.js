@@ -152,6 +152,7 @@
       if (!narrow.matches) {
         l.stage.style.removeProperty('height');
         l.mobile.style.removeProperty('transform');
+        l.mobile.style.removeProperty('width');
         continue;
       }
       const page=l.stage.closest('[data-page]');
@@ -161,8 +162,15 @@
         const diagramSpace=Math.max(1,available-l.media.offsetHeight-18);
         l.panels.forEach(panel=>{panel.style.maxHeight=`${diagramSpace}px`;});
       }
-      const natural=l.mobile.offsetHeight;
-      const scale=Math.min(1,available/Math.max(1,natural));
+      // Widen the layout by 1/scale before shrinking, so the scaled content still fills the page width.
+      l.mobile.style.width='';
+      let natural=l.mobile.offsetHeight,scale=Math.min(1,available/Math.max(1,natural));
+      for(let i=0;i<3 && scale<1;i++){
+        l.mobile.style.width=`${100/scale}%`;
+        natural=l.mobile.offsetHeight;
+        scale=Math.min(1,available/Math.max(1,natural));
+      }
+      if(scale<1)l.mobile.style.width=`${100/scale}%`;
       l.mobile.style.transform=`scale(${scale})`;
       l.stage.style.height=`${natural*scale}px`;
     }

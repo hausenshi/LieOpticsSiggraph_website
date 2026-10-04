@@ -530,3 +530,17 @@ math{font-family:"Latin Modern Math",math}
 /* Larger step numbers under the derivation. */
 #formulas>.formula-chapters button span{font-size:14px}
 @media(max-width:760px){#formulas>.formula-chapters button span{font-size:12px}}
+
+/* Mobile-only refinements. Desktop widths never match this query. */
+@media(max-width:760px), (max-width:900px) and (orientation:portrait){
+ /* Slide 1: zoom the lens render so its box is 80% of the page height, centered on the big lenses. */
+ .paper-page{overflow-x:clip}
+ .paper-page::before{--bg-h:calc(var(--page-height) * .8);height:var(--bg-h);width:calc(var(--bg-h) * 6076 / 3385);aspect-ratio:auto;
+  left:50%;transform:translate(-38%,-50%)}
+ /* Slide 2: keep the subtitle right under the title instead of floating mid-gap. */
+ .slide-heading>.slide-subtitle{transform:none!important;margin-top:.5em}
+ .slide-heading>.slide-subtitle{font-size:15px;line-height:1.45}
+ /* Slides 3 and 5: reclaim vertical room so the fit-to-page scale shrinks less. */
+ .animation-page:not(.pipeline-page){padding-bottom:104px;gap:8px}
+ .slide-mobile{gap:12px}
+}
