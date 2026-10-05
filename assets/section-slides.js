@@ -71,7 +71,7 @@
       const [name,...view]=entry.trim().split(/\s+/);
       const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
       svg.setAttribute('viewBox',view.join(' ')); svg.setAttribute('role','img'); svg.setAttribute('aria-label',`${label}: ${name}`);
-      svg.classList.add('mobile-art'); mobile.append(svg); return [name,svg];
+      svg.classList.add('mobile-art'); svg.style.setProperty('--units',view[2]); mobile.append(svg); return [name,svg];
     }));
     // Keep video in ordinary HTML: WebKit composites video outside SVG
     // foreignObject coordinates and ignores the surrounding SVG clip path.
@@ -120,7 +120,7 @@
           if(group===l.title || group===l.subtitle || !group.childElementCount) continue;
           (l.panels.get(group.dataset.panel) || l.first).append(group);
         }
-        l.panels.forEach(panel=>{panel.hidden=!panel.childElementCount;});
+        l.panels.forEach(panel=>{panel.hidden=!panel.childElementCount;panel.classList.toggle('figure',Boolean(panel.querySelector('image')));});
         if(l.media)l.mediaBlock.append(l.media);
       } else {
         l.groups.forEach(g=>l.source.append(g));
@@ -147,52 +147,13 @@
   }
   document.addEventListener('paper-layout',()=>requestAnimationFrame(placeSubtitles));
   window.addEventListener('resize',()=>requestAnimationFrame(placeSubtitles));
-  const MIN_SCALE=0.82,WIDE_FIGURE_PX_PER_UNIT=0.75;
+  // Phone layout is sized by CSS (website.css, "Mobile slides"): text panels at one px per slide
+  // unit, figures fitted to the stage width, and a stage that ends above the controls and scrolls
+  // when its content is taller. Nothing is measured here, so there is nothing to go stale when the
+  // browser toolbar or safe areas change. Every phone stage is a scroll region; website.js asks it
+  // live whether it can still scroll. Desktop keeps its slide untouched.
   function fitSlides() {
-    for (const l of layouts) {
-      if (!narrow.matches) {
-        for(const property of ['height','overflow-y'])l.stage.style.removeProperty(property);
-        l.stage.removeAttribute('data-native-scroll');
-        l.mobile.style.removeProperty('transform');
-        l.mobile.style.removeProperty('width');
-        l.mobile.style.removeProperty('margin-bottom');
-        l.panels.forEach(panel=>{panel.style.minWidth='';panel.style.alignSelf='';});
-        continue;
-      }
-      const page=l.stage.closest('[data-page]');
-      const css=getComputedStyle(page);
-      const available=Math.max(1,page.clientHeight-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom));
-      if(l.media){
-        const diagramSpace=Math.max(1,available-l.media.offsetHeight-18);
-        l.panels.forEach(panel=>{panel.style.maxHeight=`${diagramSpace}px`;});
-      }
-      // A figure that would be tiny at phone width keeps a readable size and scrolls sideways instead.
-      const reference=l.stage.clientWidth/0.9;
-      l.panels.forEach(panel=>{
-        const wide=panel.querySelector('image') && Number(panel.getAttribute('viewBox').split(' ')[2])*WIDE_FIGURE_PX_PER_UNIT>reference*1.15;
-        panel.style.minWidth=wide?`${Number(panel.getAttribute('viewBox').split(' ')[2])*WIDE_FIGURE_PX_PER_UNIT}px`:'';
-        panel.style.alignSelf=wide?'flex-start':'';
-      });
-      // Widen the layout by 1/scale before shrinking, so the scaled content still fills the page width.
-      l.mobile.style.width='';
-      let natural=l.mobile.offsetHeight,scale=Math.min(1,available/Math.max(1,natural));
-      for(let i=0;i<3 && scale<1;i++){
-        l.mobile.style.width=`${100/scale}%`;
-        natural=l.mobile.offsetHeight;
-        scale=Math.min(1,available/Math.max(1,natural));
-      }
-      // Never shrink below MIN_SCALE: a longer slide scrolls inside its own region (the page only
-      // changes once that region reaches its end), so the text stays readable.
-      scale=Math.max(MIN_SCALE,scale);
-      l.mobile.style.width=scale<1?`${100/scale}%`:'';
-      natural=l.mobile.offsetHeight;
-      const scaled=natural*scale,scrolls=scaled>available+1,sideways=l.stage.scrollWidth>l.stage.clientWidth+1;
-      l.mobile.style.transform=`scale(${scale})`;
-      l.mobile.style.marginBottom=`${scaled-natural}px`;
-      l.stage.style.height=`${Math.min(scaled,available)}px`;
-      l.stage.style.overflowY=scrolls?'auto':'';
-      l.stage.toggleAttribute('data-native-scroll',scrolls || sideways);
-    }
+    for (const l of layouts) l.stage.toggleAttribute('data-native-scroll',narrow.matches);
     document.dispatchEvent(new Event('paper-layout'));
   }
   const sizeObserver=new ResizeObserver(fitSlides);

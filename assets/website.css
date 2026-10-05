@@ -563,3 +563,23 @@ dialog.figure-lightbox::backdrop{background:#fff}
 @media(max-width:760px), (max-width:900px) and (orientation:portrait){
  .slide-mobile{transform-origin:top left}
 }
+
+/* Mobile slides, sized entirely by CSS so nothing depends on a measurement taken at load:
+   - one fixed type size per role on every page: title 24px, subtitle 15px, bullet text 0.8px per
+     slide unit (--units is each panel's viewBox width, set in section-slides.js);
+   - the stage ends above the playback controls and the page navigation, and scrolls when its
+     content is taller; the padding below lets the last line rest well clear of them;
+   - figures fit the stage width and sit centered (tap one to open the zoom viewer). */
+@media(max-width:760px), (max-width:900px) and (orientation:portrait){
+ :root{--page-heading-font:24px}
+ .animation-page .slide-stage{
+  --slide-top:calc(var(--page-heading-top) + var(--page-heading-height,96px) + 8px);
+  --slide-reserve:calc(max(76px,calc(env(safe-area-inset-bottom) + 64px)) + 44px + 20px);
+  height:auto;max-height:calc(100vh - var(--slide-top) - var(--slide-reserve));
+  overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+ @supports(height:100svh){.animation-page .slide-stage{max-height:calc(100svh - var(--slide-top) - var(--slide-reserve))}}
+ .slide-mobile{gap:14px;padding-bottom:72px}
+ .slide-mobile>.mobile-art{max-height:none;max-width:none;min-width:0;align-self:center}
+ .slide-mobile>.mobile-art.figure{width:100%}
+ .slide-mobile>.mobile-art:not(.figure){width:min(calc(var(--units) * .8px),100%)}
+}

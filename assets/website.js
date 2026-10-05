@@ -374,6 +374,7 @@
     event.preventDefault();
   },{passive:false,capture:true});
   let touchGesture;
+  const PAGE_FLIP_DISTANCE=40;
   const wechatTouch=/MicroMessenger/i.test(navigator.userAgent);
   function stepTouchPage(direction){
     if(wechatTouch){touchGesture.pageDirection=direction;return 'page';}
@@ -430,6 +431,12 @@
     const movement=gesture.lastY-t.clientY;
     gesture.lastY=t.clientY;
     const direction=Math.sign(movement)||gesture.direction;
+    // A slide that scrolls inside its own stage needs a deliberate swipe, not a light drag, to leave
+    // the page once the stage has reached its end.
+    if(!gesture.owner && gesture.region?.classList.contains('slide-stage') && !(dy>0?gesture.canDown:gesture.canUp) && Math.abs(dy)<PAGE_FLIP_DISTANCE) {
+      if(event.cancelable) event.preventDefault();
+      return;
+    }
     if(!gesture.owner) {
       gesture.owner=(direction<0?gesture.canUp:gesture.canDown)?'gallery':'page';
       gesture.direction=direction;
